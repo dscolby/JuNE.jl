@@ -1,0 +1,13 @@
+name = "JuNE"
+uuid = "a81d6d8f-d751-4fbf-9518-04d5373892c5"
+authors = ["Darren Colby <dscolby17@gmail.com> and Contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
