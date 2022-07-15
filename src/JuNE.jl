@@ -1,5 +1,6 @@
 module JuNE
+# REMINDER: ALWAYS EXPORT FUNCTIONS FOR TESTS
 
-# Write your package code here.
+include("SnowballRules.jl")
 
 end
