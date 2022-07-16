@@ -1,56 +1,161 @@
 module StemmingRules # Reminder: FUNCTIONS NEED TO BE EXPORTED TO TEST THEM
 
-function _getR1(str)
-    vowels = ("a", "e", "i", "o", "u", "y")
-    idx = 0 # The index of the first vowel
+#using Stopwords
 
-    # Loop through every character
-    for char in str
-        idx += 1 # Update the index
+__VOWELS__ = ("a", "e", "i", "o", "u", "y", "Y")
+__STEP0_SUFFIXES__ = r"$'|'s'|'s|'"
+__r1__ = ""
+__r2__ = ""
+__step1a_vowel_found__ = false
+__step1b_vowel_found__ = false
 
-        # make sure to stop at the end of the word
-        if idx < length(str)
+"""
+    __getR1(word, idx=1)
 
-            # Checks if character is vowel and next character is not
-            if string(char) ∈ vowels && string(str[idx+1]) ∉ vowels
-                return str[idx+2:end] # R1 region
+Find the R1 region of a word.
+
+Note: This is a recursive function, so the idx should always be the default.
+
+# Examples
+```julia-repl
+julia> __getR1("beautiful")
+"iful"
+```
+"""
+function __getR1(word::String, idx=1)
+
+    # Stopping criteria
+    if string(word[idx]) ∈ __VOWELS__ && string(word[idx+1]) ∉ __VOWELS__
+        return word[idx+2:end]
+    
+    # Base case
+    elseif idx+1 >= length(word)
+        return ""
+
+    # Keep checking
+    else
+        __getR1(word, idx+1) 
+    end
+end
+
+"""
+    __getR2(word, idx=1)
+
+Find the R2 region of a word.
+
+Note: This is a recursive function, so the idx should always be the default.
+
+# Examples
+```julia-repl
+julia> __getR2("beautiful")
+"ul"
+```
+"""
+function __getR2(word=r1, idx=1)
+
+    # Stopping criteria
+    if idx+1 >= length(word)
+        return ""
+
+    # Base case
+    elseif string(word[idx]) ∈ __VOWELS__ && string(word[idx+1]) ∉ __VOWELS__
+       return word[idx+2:end]
+    
+    # Keep checking
+    else 
+        __getR2(word[idx+1:end], idx+1)
+    end
+end
+
+"""
+    __prestep(word)
+
+Converts y to Y if y is preceeded by a vowel.
+
+# Examples
+```julia-repl
+julia> __getR1("sergey")
+"sergeY"
+```
+"""
+function __prestep(word::String)
+
+    # Return short words and Stopwords
+    #TODO: add stopwords
+    if length(word) <=2 return word end
+
+    # Checks if there is a vowel followed by a y
+    for idx in eachindex(word)
+        # Do not go past the end of the word
+        if idx < length(word)
+            if string(word[idx]) ∈ __VOWELS__ && string(word[idx+1]) == "y"
+                return word[1:idx] * "Y" * word[idx+2:end]
             end
         end
     end
-    return ""
+    return word
 end
 
-function _rule0(str::String)
-    if endswith(str, r"'s'|'s|'")
-        return replace(str, r"$'s'|'s|'" => "", count=2)
-    end
-end
+"""
+    __special_cases(word)
 
-function _rule1(str::String)
+Updates __r1__ and __r2__ for words that start with gener, commun, or arsen
+and is only called for its side effects.
 
-    # Make words like caresses into their base words
-    endswith(str, r"sses") ? str = str[1:end-2] : str
+# Examples
+```julia-repl
+julia> __special_cases("communal")
+```
+"""
+function __special_cases(word::String)
+    new_word = __prestep(word) # Run the prestep first
 
-    # Replace words that end in ies or ied with their base words
-    if endswith(str, r"ied|ies")
-        # Cuts off the es or ed if the word is longer than four letters
-        if length(str) > 4
-            return str[1:end-2]
-        # Only removes the s on shorter words like ties
+    if length(word) <=2 return word end # Always return short words
+
+    # Updates the first region for these special cases
+    if startswith(word, r"gener|commun|arsen")
+        if startswith(word, r"gener|arsen")
+            __r1__ = word[6:end]
         else
-            return str[1:end-1]
+            __r1__ = word[7:end]
         end
-    end
 
-    # If a string ends in an s and has a vowel not immediately before
-    # the s, removes the s: ei gaps -> gap
-    if endswith(str, r"[b-df-hj-np-rt-v-z]+s") && 
-        occursin(r"[aeiouy]", str[1:end-2])
-        str = str[1:end-1]
+        for idx in eachindex(word)
+            if idx < length(word)
+                if string(__r1__[idx+1]) ∉ __VOWELS__ && 
+                    string(__r1__[idx]) ∈ __VOWELS__
+                    __r2__ = __r1__[idx+2:end]
+                    break
+                end
+            end
+        end
+    else
+        __r1__ = __getR1(word)
+        __r2__ = __getR2(__r1__)
     end
-
-    return str
+    return new_word
 end
 
-broadcast(_getR1, ("beautiful", "beauty", "beau"))
+"""
+    __step0(word)
+
+Step 0 in the Snowball algorithm. Removes 's', 's, and ' suffixes.
+
+# Examples
+```julia-repl
+julia> __step0("caresses")
+"caress"
+```
+"""
+function __step0(word::String)
+    if length(word) <=2 return word end # Always return short words
+
+    # Check if it is a special case first
+    new_word = __special_cases(word)
+
+    if endswith(new_word, __STEP0_SUFFIXES__)
+        return replace(new_word, __STEP0_SUFFIXES__ => "", count=1)
+    end
+    return new_word
+end
 end

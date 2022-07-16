@@ -1,25 +1,33 @@
 using Test
 using JuNE.StemmingRules 
 
-expected1 = ["ol", "it", "chris"]
-expected2 = ["caress", "tie", "cri", "gas", "gap"]
-expected3 = ("iful", "y", "")
-
+# Test finding the R1 and R2 regions of words
 @testset "SnowballRules.jl" begin
-    @test broadcast(StemmingRules._getR1, 
-        ("beautiful", "beauty", "beau")) == expected3
+
+    # R1 region
+    @test broadcast(StemmingRules.__getR1, 
+        ("beautiful", "beauty", "beau")) == ("iful", "y", "")
+
+    # R2 region
+    @test broadcast(StemmingRules.__getR2, 
+        ("beautiful", "beauty", "beau")) == ("ul", "", "")
 end
 
+# Test the preprocessing step
+@testset "SnowballRules.jl" begin #TODO: Figure out how to import STOPWORDS
+    @test broadcast(StemmingRules.__prestep, 
+        ("he", "sergey")) == ("he", "sergeY")
+end
+
+# Test the first part of special cases for words that start with gener, commun, and arsen
 @testset "SnowballRules.jl" begin
+    # This function is only run for its side effects
+    @test broadcast(StemmingRules.__special_cases, 
+        ("generate", "communal", "arsenal")) == ("generate", "communal", "arsenal")
+end
 
-    # Rule 0: removing contractions at the end of a word
-    @test broadcast(StemmingRules._rule0, 
-        ["ol'", "it's", "chris's'"]) == expected1
-
-    # Rule 1: see the algorithm
-    @test [StemmingRules._rule1("caresses"), 
-        StemmingRules._rule1("ties"), 
-        StemmingRules._rule1("cries"), 
-        StemmingRules._rule1("gas"), 
-        StemmingRules._rule1("gaps")] == expected2
-end 
+# Test to make sure the stemmer gets rid of 's', 's, and ' suffixes
+@testset "SnowballRules.jl" begin
+    @test broadcast(StemmingRules.__step0, 
+        ("darren's'", "darren's", "darren'")) == ("darren", "darren", "darren")
+end
