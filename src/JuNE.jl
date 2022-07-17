@@ -3,7 +3,7 @@ module JuNE
 export STOPWORDS
 
 include("SnowballRules.jl")
-include("Stopwords.jl")
+include("Utils.jl")
 
 using JuNE.Stopword
 

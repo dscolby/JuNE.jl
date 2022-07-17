@@ -1,4 +1,17 @@
 """
+Contains constants to be imported and used for stemming.
+"""
+module Constants
+
+export __VOWELS__, __STEP0_SUFFIXES__, __STEP1A_SUFFIXES__, __STEP1B_SUFFIXES
+
+__VOWELS__ = ("a", "e", "i", "o", "u", "y", "Y")
+__STEP0_SUFFIXES__ = r"$'|'s'|'s|'"
+__STEP1A_SUFFIXES__ = ("sses", "ied", "ies", "us", "ss", "s")
+__STEP1B_SUFFIXES = ("eedly", "ingly", "edly", "eed", "ing", "ed")
+end
+
+"""
 Contains a set of stopwords including contractions such as "don't."
 The stopwords are the same ones used in the SpaCy library for Python:
 https://github.com/explosion/spaCy. The contractions are based on the

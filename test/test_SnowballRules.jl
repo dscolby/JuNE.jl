@@ -31,3 +31,9 @@ end
     @test broadcast(StemmingRules.__step0, 
         ("darren's'", "darren's", "darren'")) == ("darren", "darren", "darren")
 end
+
+# Test replacement of suffixes ied, ies, sses, us, ss, and s
+@testset "SnowballRules.jl" begin
+    @test broadcast(StemmingRules.__step1a, 
+        ("ties", "cries", "caresses", "gas", "gaps")) == ("tie", "cri", "caress", "gas", "gap")
+end
